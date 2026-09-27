@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Deterministic Azure CLI fixture for collector integration checks."""
+
+import json
+import sys
+from datetime import datetime
+
+
+GOOD = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+FAILED = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+TENANT = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+
+
+def emit(value):
+    print(json.dumps(value))
+
+
+args = sys.argv[1:]
+if args[:2] == ["account", "show"]:
+    emit({"id": GOOD, "name": "Fixture Production", "tenantId": TENANT, "state": "Enabled"})
+elif args[:2] == ["account", "list"]:
+    emit([
+        {"id": GOOD, "name": "Fixture Production", "tenantId": TENANT, "state": "Enabled"},
+        {"id": FAILED, "name": "Fixture Failure", "tenantId": TENANT, "state": "Enabled"},
+        {"id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd", "name": "Wrong tenant", "tenantId": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", "state": "Enabled"},
+    ])
+elif args and args[0] == "graph":
+    query = args[args.index("-q") + 1]
+    if "type in~" not in query or "project id, name, type=tolower(type), resourceGroup, location, subscriptionId" not in query or args[args.index("--first") + 1] != "1000":
+        print("ERROR: fixture rejected malformed Resource Graph query", file=sys.stderr)
+        sys.exit(2)
+    if "--skip-token" in args and args[args.index("--skip-token") + 1] != "fixture-page-two":
+        print("ERROR: fixture rejected wrong Resource Graph skip token", file=sys.stderr)
+        sys.exit(2)
+    subscription = args[args.index("--subscriptions") + 1]
+    name = "fixture-vault" if subscription == GOOD else "failed-vault"
+    page = {
+        "count": 1,
+        "data": [{
+            "id": f"/subscriptions/{subscription}/resourceGroups/security/providers/Microsoft.KeyVault/vaults/{name}",
+            "name": name,
+            "type": "microsoft.keyvault/vaults",
+            "resourceGroup": "security",
+            "location": "westus2",
+            "subscriptionId": subscription,
+        }],
+        "total_records": 1,
+    }
+    if "--skip-token" not in args:
+        page["skip_token"] = "fixture-page-two"
+    emit(page)
+elif args and args[0] == "rest":
+    uri = args[args.index("--uri") + 1]
+    if "/tenants?" in uri:
+        emit({"value": [{"tenantId": TENANT, "displayName": "Fixture Tenant", "defaultDomain": "fixture.example"}]})
+    elif "Microsoft.Security/pricings" in uri:
+        emit({"value": [{
+            "name": "KeyVaults",
+            "properties": {
+                "pricingTier": "Standard",
+                "subPlan": None,
+                "resourcesCoverageStatus": "FullyCovered",
+                "deprecated": False,
+                "extensions": [{"name": "FixtureExtension", "isEnabled": "TRUE"}],
+            },
+        }]})
+    elif "Microsoft.CostManagement/query" in uri and FAILED in uri:
+        print("ERROR: Forbidden AuthorizationFailed: fixture Cost Management denial", file=sys.stderr)
+        sys.exit(1)
+    elif "Microsoft.CostManagement/query" in uri:
+        body = json.loads(args[args.index("--body") + 1])
+        services = body["dataset"]["filter"]["dimensions"]
+        start = datetime.fromisoformat(body["timePeriod"]["from"])
+        end = datetime.fromisoformat(body["timePeriod"]["to"])
+        valid = (
+            body["type"] == "ActualCost"
+            and body["dataset"]["granularity"] == "None"
+            and body["dataset"]["aggregation"]["totalCostUSD"] == {"name": "CostUSD", "function": "Sum"}
+            and body["dataset"]["grouping"] == [{"type": "Dimension", "name": "MeterSubCategory"}, {"type": "Dimension", "name": "ResourceId"}]
+            and services == {"name": "ServiceName", "operator": "In", "values": ["Microsoft Defender", "Microsoft Defender for Cloud"]}
+            and (end.date() - start.date()).days == 29
+            and body["timePeriod"]["from"].endswith("T00:00:00.000+00:00")
+            and body["timePeriod"]["to"].endswith("T23:59:59.999+00:00")
+        )
+        if not valid:
+            print("ERROR: fixture rejected malformed Cost Management request body", file=sys.stderr)
+            sys.exit(2)
+        resource_id = f"/subscriptions/{GOOD}/resourceGroups/security/providers/Microsoft.KeyVault/vaults/fixture-vault"
+        emit({"properties": {
+            "columns": [{"name": "ResourceId"}, {"name": "CostUSD"}, {"name": "MeterSubCategory"}],
+            "rows": [
+                [resource_id, 30.86, "Microsoft Defender for Key Vault"],
+                [f"/subscriptions/{GOOD}/resourceGroups/old/providers/Microsoft.KeyVault/vaults/deleted-one", 12.00, "Microsoft Defender for Key Vault"],
+                [f"/subscriptions/{GOOD}/resourceGroups/old/providers/Microsoft.KeyVault/vaults/deleted-two", 8.00, "Microsoft Defender for Key Vault"],
+            ],
+            "nextLink": None,
+        }})
+    else:
+        print(f"ERROR: unexpected fixture URI: {uri}", file=sys.stderr)
+        sys.exit(2)
+else:
+    print(f"ERROR: unexpected fixture arguments: {args}", file=sys.stderr)
+    sys.exit(2)

@@ -1,0 +1,8 @@
+# Generated output contains Azure billing and inventory data. Never commit it.
+out/
+bin/
+obj/
+.vs/
+*.user
+*.suo
+.DS_Store
