@@ -800,7 +800,9 @@ internal static class AzureCollector
         var endExclusive = DateTime.UtcNow.Date;
         var start = endExclusive.AddDays(-30);
         var end = endExclusive.AddDays(-1);
-        var semaphore = new SemaphoreSlim(2);
+        // Serial collection stays below Cost Management's tenant-level burst limit and also
+        // prevents concurrent first-run Azure CLI extension installation races.
+        var semaphore = new SemaphoreSlim(1);
         var tasks = selected.Select(async subscription =>
         {
             await semaphore.WaitAsync();
@@ -1001,7 +1003,7 @@ internal static class AzureCollector
                     throw new AppException($"Cost Management permission failure for {subscriptionName}. Cost Management Reader is required: {result.StandardError}");
                 throw new AppException($"Cost Management query for {subscriptionName} failed: {result.StandardError}");
             }
-            await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt + 1)));
+            await Task.Delay(TimeSpan.FromSeconds(5 * Math.Pow(2, attempt)));
         }
         throw new AppException($"Cost Management query for {subscriptionName} failed after retries.");
     }
