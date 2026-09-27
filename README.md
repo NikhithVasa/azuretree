@@ -66,6 +66,7 @@ Controls:
 - `1`–`4` switch grouping views.
 - `/` focuses the filter; Escape clears it or the selection.
 - `E` exports agent JSON.
+- Azure Portal links in the details panel open the selected resource or resource type.
 
 Filtering matches category, resource name, ARM ID, type, resource group, subscription, and coverage.
 
