@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace AzureDefenderTree;
+namespace AzureTree;
 
 internal static class Program
 {
@@ -50,7 +50,7 @@ internal static class Program
                 }
                 catch (JsonException ex)
                 {
-                    throw new AppException($"Cached data is not valid azuredefendertree JSON: {ex.Message}");
+                    throw new AppException($"Cached data is not valid azuretree JSON: {ex.Message}");
                 }
 
                 DataBuilder.FinalizeReport(data);
@@ -65,12 +65,12 @@ internal static class Program
                 throw new AppException("Choose a data scope. Use --mdc to read Microsoft Defender for Cloud data.");
             }
 
-            var output = Path.GetFullPath(options.Out ?? Path.Combine("out", "azuredefendertree.html"));
+            var output = Path.GetFullPath(options.Out ?? Path.Combine("out", "azuretree.html"));
             Directory.CreateDirectory(Path.GetDirectoryName(output)!);
 
             var reportJson = JsonSerializer.Serialize(data, JsonOptions);
             var template = ReadEmbeddedViewer();
-            const string marker = "__AZUREDEFENDERTREE_DATA__";
+            const string marker = "__AZURETREE_DATA__";
             if (!template.Contains(marker, StringComparison.Ordinal))
             {
                 throw new AppException("Embedded viewer template is missing its data placeholder.");
@@ -81,7 +81,7 @@ internal static class Program
 
             if (options.From is null)
             {
-                var cache = Path.GetFullPath(Path.Combine("out", "azuredefendertree-data.json"));
+                var cache = Path.GetFullPath(Path.Combine("out", "azuretree-data.json"));
                 Directory.CreateDirectory(Path.GetDirectoryName(cache)!);
                 await File.WriteAllTextAsync(cache, reportJson, new UTF8Encoding(false));
                 Console.WriteLine($"Data:   {cache}");
@@ -89,7 +89,7 @@ internal static class Program
 
             if (options.Export)
             {
-                var exportPath = Path.GetFullPath(options.ExportPath ?? Path.Combine("out", "azuredefendertree-export.json"));
+                var exportPath = Path.GetFullPath(options.ExportPath ?? Path.Combine("out", "azuretree-export.json"));
                 Directory.CreateDirectory(Path.GetDirectoryName(exportPath)!);
                 await File.WriteAllTextAsync(exportPath, JsonSerializer.Serialize(AgentExport.Create(data), JsonOptions), new UTF8Encoding(false));
                 Console.WriteLine($"Export: {exportPath}");
@@ -111,19 +111,19 @@ internal static class Program
         }
         catch (AppException ex)
         {
-            Console.Error.WriteLine($"azuredefendertree: {ex.Message}");
+            Console.Error.WriteLine($"azuretree: {ex.Message}");
             return 1;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"azuredefendertree: unexpected error: {ex.Message}");
+            Console.Error.WriteLine($"azuretree: unexpected error: {ex.Message}");
             return 1;
         }
     }
 
     private static string ReadEmbeddedViewer()
     {
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("azuredefendertree.viewer.html")
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("azuretree.viewer.html")
             ?? throw new AppException("The embedded viewer.html resource could not be found.");
         using var reader = new StreamReader(stream, Encoding.UTF8);
         return reader.ReadToEnd();
@@ -137,7 +137,7 @@ internal static class Program
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"azuredefendertree: report created, but the browser could not be opened: {ex.Message}");
+            Console.Error.WriteLine($"azuretree: report created, but the browser could not be opened: {ex.Message}");
         }
     }
 }
@@ -156,7 +156,7 @@ internal sealed class Options
     public List<string> Subscriptions { get; } = [];
 
     public const string HelpText = """
-azuredefendertree — Microsoft Defender for Cloud coverage and actual CostUSD
+azuretree — Microsoft Defender for Cloud coverage and actual CostUSD
 
 Usage:
   dotnet run -- --demo [--no-open]
@@ -169,8 +169,8 @@ Options:
   --tenant ID            Restrict collection to one Azure tenant.
   --subscription VALUE   Select a subscription by ID or display name; repeatable.
   --from FILE            Reopen cached report data without Azure calls.
-  --export [FILE]        Also write agent JSON (default out/azuredefendertree-export.json).
-  --out FILE             HTML destination (default out/azuredefendertree.html).
+  --export [FILE]        Also write agent JSON (default out/azuretree-export.json).
+  --out FILE             HTML destination (default out/azuretree.html).
   --no-open              Do not open the generated report.
   --help                 Show this help.
 """;
@@ -658,7 +658,7 @@ internal static class AgentExport
     public static object Create(ReportData data) => new
     {
         schemaVersion = "1.0",
-        tool = "azuredefendertree",
+        tool = "azuretree",
         generated = data.Generated,
         tenant = new { name = data.TenantName, id = data.Tenant },
         reportingPeriod = new { start = data.PeriodStart, end = data.PeriodEnd, description = "Latest 30 complete UTC days" },
@@ -1048,7 +1048,7 @@ internal static class AzureCollector
         }
         catch (AppException ex)
         {
-            Console.Error.WriteLine($"azuredefendertree: tenant friendly name unavailable: {ex.Message}");
+            Console.Error.WriteLine($"azuretree: tenant friendly name unavailable: {ex.Message}");
         }
         return tenant;
     }

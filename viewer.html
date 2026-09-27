@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>azuredefendertree</title>
+<title>azuretree</title>
 <style>
 :root {
   color-scheme: dark;
@@ -30,7 +30,7 @@ footer{grid-column:1/-1;display:flex;align-items:center;gap:13px;overflow-x:auto
 <body>
 <div class="app">
   <header>
-    <div class="brand"><span class="logo" aria-hidden="true"><i style="background:var(--compute)"></i><i style="background:var(--storage)"></i><i style="background:var(--database)"></i><i style="background:var(--containers)"></i></span>azuredefendertree</div>
+    <div class="brand"><span class="logo" aria-hidden="true"><i style="background:var(--compute)"></i><i style="background:var(--storage)"></i><i style="background:var(--database)"></i><i style="background:var(--containers)"></i></span>azuretree</div>
     <div class="crumbs" id="crumbs"></div><div class="spacer"></div>
     <div class="views" id="views" aria-label="Treemap grouping">
       <button data-view="subcategory">Subcategory</button><button data-view="subscription">Subscription</button><button data-view="resourceType">Resource type</button><button data-view="coverage">Coverage</button>
@@ -49,7 +49,7 @@ footer{grid-column:1/-1;display:flex;align-items:center;gap:13px;overflow-x:auto
 </div>
 <div id="tip" role="tooltip"></div>
 <script>
-const DATA=__AZUREDEFENDERTREE_DATA__;
+const DATA=__AZURETREE_DATA__;
 const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const priced=DATA.resources.filter(r=>Number.isFinite(r.costUsd)&&r.costUsd>0),fullTotal=DATA.totalCostUsd||priced.reduce((s,r)=>s+r.costUsd,0);
 const state={view:"subcategory",filter:"",zoom:null,selection:null};
@@ -108,8 +108,8 @@ function up(){if(state.zoom){const old=currentZoom();state.zoom=null;state.selec
 function setView(view){if(!viewLabels[view]||view===state.view)return;state.view=view;state.zoom=null;state.selection=null;tree=buildTree();render()}
 $("#map").addEventListener("click",e=>select(e.target.closest(".cell")?._node||null));$("#map").addEventListener("dblclick",e=>{const cell=e.target.closest(".cell");if(cell)openNode(cell._node)});$("#views").addEventListener("click",e=>e.target.dataset.view&&setView(e.target.dataset.view));$("#crumbs").addEventListener("click",e=>e.target.closest("[data-up]")&&up());$("#filter").addEventListener("input",e=>{state.filter=e.target.value.trim();state.selection=null;tree=buildTree();if(state.zoom&&!currentZoom())state.zoom=null;render()});
 document.addEventListener("keydown",e=>{const typing=e.target.matches("input,textarea,[contenteditable=true]");if(e.key==="Escape"){if(state.filter){$("#filter").value="";$("#filter").dispatchEvent(new Event("input"));$("#filter").blur()}else{state.selection=null;render()}return}if(typing||e.metaKey||e.ctrlKey||e.altKey)return;if(e.key==="/"){e.preventDefault();$("#filter").focus()}else if(e.key==="Enter")openNode(state.selection);else if(e.key==="Backspace"){e.preventDefault();up()}else if(e.key.toLowerCase()==="e")exportJson();else if(["1","2","3","4"].includes(e.key))setView(["subcategory","subscription","resourceType","coverage"][Number(e.key)-1])});
-function exportPayload(){return{schemaVersion:"1.0",tool:"azuredefendertree",generated:DATA.generated,tenant:{name:DATA.tenantName,id:DATA.tenant},reportingPeriod:{start:DATA.periodStart,end:DATA.periodEnd,description:"Latest 30 complete UTC days"},currency:DATA.currency,totalCostUsd:DATA.totalCostUsd,subscriptionCount:DATA.subscriptionCount,enabledPlans:DATA.plans,pricedResources:priced,coveredResourcesWithoutPositiveCost:DATA.resources.filter(r=>!(r.costUsd>0)),collectionErrors:DATA.errors,interpretation:["CostUsd values and percentages are actual CostUSD; a dominant top-level treemap group is visually capped at 50% when it exceeds all other visible groups combined.","The period is the latest 30 complete UTC days.","General Azure costs are excluded; only Microsoft Defender and Microsoft Defender for Cloud ServiceName values are queried.","Enabled-plan resource counts include applicable resources without current positive cost.","Historical or inaccessible resource costs are consolidated by subscription and MeterSubCategory.","Partially covered does not mean every discovered resource is fully protected.","A nonempty collectionErrors array means the report is incomplete."]}}
-function exportJson(){const blob=new Blob([JSON.stringify(exportPayload(),null,2)],{type:"application/json"}),a=Object.assign(document.createElement("a"),{href:URL.createObjectURL(blob),download:"azuredefendertree-export.json"});a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}$("#export").addEventListener("click",exportJson);
+function exportPayload(){return{schemaVersion:"1.0",tool:"azuretree",generated:DATA.generated,tenant:{name:DATA.tenantName,id:DATA.tenant},reportingPeriod:{start:DATA.periodStart,end:DATA.periodEnd,description:"Latest 30 complete UTC days"},currency:DATA.currency,totalCostUsd:DATA.totalCostUsd,subscriptionCount:DATA.subscriptionCount,enabledPlans:DATA.plans,pricedResources:priced,coveredResourcesWithoutPositiveCost:DATA.resources.filter(r=>!(r.costUsd>0)),collectionErrors:DATA.errors,interpretation:["CostUsd values and percentages are actual CostUSD; a dominant top-level treemap group is visually capped at 50% when it exceeds all other visible groups combined.","The period is the latest 30 complete UTC days.","General Azure costs are excluded; only Microsoft Defender and Microsoft Defender for Cloud ServiceName values are queried.","Enabled-plan resource counts include applicable resources without current positive cost.","Historical or inaccessible resource costs are consolidated by subscription and MeterSubCategory.","Partially covered does not mean every discovered resource is fully protected.","A nonempty collectionErrors array means the report is incomplete."]}}
+function exportJson(){const blob=new Blob([JSON.stringify(exportPayload(),null,2)],{type:"application/json"}),a=Object.assign(document.createElement("a"),{href:URL.createObjectURL(blob),download:"azuretree-export.json"});a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}$("#export").addEventListener("click",exportJson);
 const tip=$("#tip");$("#map").addEventListener("mousemove",e=>{const n=e.target.closest(".cell")?._node;if(!n||n.kind!=="resource"){tip.style.display="none";return}const r=n.record;tip.innerHTML=`<div class="title">${esc(r.name)}</div><div class="line">${esc(r.resourceTypeLabel)} · ${money(r.costUsd)} · ${esc(r.category)} · ${esc(r.subscriptionName)}</div><div class="tip-id">${esc(r.id)}</div>`;tip.style.display="block";const tw=tip.offsetWidth,th=tip.offsetHeight;tip.style.left=`${Math.max(8,Math.min(e.clientX+14,innerWidth-tw-8))}px`;tip.style.top=`${Math.max(8,Math.min(e.clientY+14,innerHeight-th-8))}px`});$("#map").addEventListener("mouseleave",()=>tip.style.display="none");
 $("#footer-meta").innerHTML=`${DATA.demo?'<span class="demo">demo data</span> · ':""}${money(DATA.totalCostUsd)} · ${DATA.subscriptionCount} subscription${DATA.subscriptionCount===1?"":"s"} · ${esc(DATA.tenantName)} · tenant ID ${esc(DATA.tenant)} · read ${esc(DATA.generated)}${DATA.errors.length?` · ${DATA.errors.length} warning${DATA.errors.length===1?"":"s"}`:""}`;
 let raf;render();new ResizeObserver(()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(render)}).observe($("#map"));

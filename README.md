@@ -1,6 +1,6 @@
-# azuredefendertree
+# azuretree
 
-azuredefendertree shows which Azure resources are covered by enabled Microsoft Defender for Cloud plans and how much actual Defender `CostUSD` each category and resource contributed.
+azuretree shows which Azure resources are covered by enabled Microsoft Defender for Cloud plans and how much actual Defender `CostUSD` each category and resource contributed.
 
 It is a dependency-free .NET 8 console app. Azure access goes through the signed-in Azure CLI, and the result is one self-contained offline HTML file.
 
@@ -30,8 +30,8 @@ dotnet run -- --mdc --tenant <tenant-id>
 Live runs cache their source data. Reopen or export it without Azure calls:
 
 ```powershell
-dotnet run -- --from out/azuredefendertree-data.json
-dotnet run -- --from out/azuredefendertree-data.json --export
+dotnet run -- --from out/azuretree-data.json
+dotnet run -- --from out/azuretree-data.json --export
 ```
 
 Use `--out FILE` to change the HTML path, `--export [FILE]` for agent JSON, and `--no-open` to skip opening the browser.
@@ -93,7 +93,7 @@ Generated files contain tenant and subscription identifiers, resource names and 
 
 Inspired by [disktree](https://x.com/tobi/status/2103251521223921739) by [Tobi Lütke](https://x.com/tobi): the same idea, pointed at a cloud bill instead of a disk.
 
-azuredefendertree is not affiliated with or endorsed by Microsoft.
+azuretree is not affiliated with or endorsed by Microsoft.
 
 ## License
 

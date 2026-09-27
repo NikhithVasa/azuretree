@@ -5,10 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AssemblyName>azuredefendertree</AssemblyName>
-    <RootNamespace>AzureDefenderTree</RootNamespace>
+    <AssemblyName>azuretree</AssemblyName>
+    <RootNamespace>AzureTree</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="viewer.html" LogicalName="azuredefendertree.viewer.html" />
+    <EmbeddedResource Include="viewer.html" LogicalName="azuretree.viewer.html" />
   </ItemGroup>
 </Project>
