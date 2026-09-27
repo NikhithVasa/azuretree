@@ -671,7 +671,7 @@ internal static class AgentExport
         collectionErrors = data.Errors,
         interpretation = new[]
         {
-            "Treemap area and costUsd are actual CostUSD.",
+            "CostUsd values and percentages are actual CostUSD; a dominant top-level treemap group is visually capped at 50% when it exceeds all other visible groups combined.",
             "The period is the latest 30 complete UTC days.",
             "General Azure costs are excluded; only Microsoft Defender and Microsoft Defender for Cloud ServiceName values are queried.",
             "Enabled-plan resource counts include applicable resources without current positive cost.",

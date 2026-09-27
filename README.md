@@ -69,7 +69,7 @@ General Azure spend is excluded. The reporting window is the latest 30 complete 
 
 Treemap area is based on CostUSD, not resource count.
 
-Every top-level group and leaf is laid out from positive actual `CostUSD` with a squarified treemap. There are no minimum areas, logarithms, caps, or count-based weights. The four buttons regroup the same priced records by Meter Subcategory, Subscription, Resource type, or Coverage.
+Every group and resource leaf starts from positive actual `CostUSD` and uses a squarified treemap. When one top-level group costs more than all other visible groups combined, its display area is capped at 50%; the actual cost and percentage remain unchanged, and its interior resource boxes remain proportional to their costs. There are no minimum areas, logarithms, or count-based weights. The four buttons regroup the same priced records by Meter Subcategory, Subscription, Resource type, or Coverage.
 
 Resources with no positive attributed Defender cost remain in plan coverage counts but do not receive treemap area.
 
